@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:7
+    container_name: de_gig_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: de_gig
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27019:27017"
+
+  api:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: de_gig_api
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      MONGO_URL: mongodb://mongo:27017/de_gig
+      FREELANCERS_PATH: /app/freelancers.json
+    ports:
+      - "3002:3002"
+
+volumes:
+  mongo_data:
