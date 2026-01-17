@@ -11,6 +11,11 @@ CANDIDATES = [
     "avgDeadlinesScore",
 ]
 
+def only_ready(df):
+    if "Status" not in df.columns:
+        raise ValueError("Status column not found in DataFrame")
+    return df[df["Status"] == "READY"].copy()
+
 
 def top_3_drivers(df):
     results = []
@@ -51,6 +56,14 @@ def top_5_freelancers(df):
 
 
 def run_analysis(df):
-    drivers = top_3_drivers(df)
-    top5 = top_5_freelancers(df)
-    push_analysis_sheet(drivers, top5)
+    df_ready = only_ready(df)
+
+    if df_ready.empty:
+        print("[ANALYSIS] No READY data found. Skipping analysis.")
+        return
+
+    drivers_df = top_3_drivers(df_ready)
+    top5_df = top_5_freelancers(df_ready)
+
+    push_analysis_sheet(drivers_df, top5_df)
+
