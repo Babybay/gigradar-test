@@ -11,12 +11,28 @@ def safe_get(d, path):
     except (KeyError, IndexError, TypeError):
         return None
 
+def is_ready(row: dict) -> bool:
+    required_fields = [
+        "TEMP09-shortName",
+        "TEMP12-companyFullName",
+        "TEMP15-upworkUrl",
+        "Job Title",
+        "TEMP06-skill1",
+        "TEMP07-skill2",
+        "PD02-combinedTotalRevenue",
+    ]
+
+    for field in required_fields:
+        if not row.get(field):
+            return False
+    return True
+
 
 def transform(freelancers):
     rows = []
 
     for f in freelancers:
-        rows.append({
+        row = {
             # === IDENTIFIER ===
             "TEMP08-ciphertext": f.get("ciphertext"),
             "TEMP09-shortName": f.get("shortName"),
@@ -46,12 +62,7 @@ def transform(freelancers):
                 f, ["attrSkills", 0, "skills", 0, "skill", "name"]
             ),
 
-            # === STATUS ===
-            "TEMP04-agencyTopRatedStatus": (
-                f.get("topRatedStatusEx") or f.get("topRatedStatus")
-            ),
-
-            # === METRICS (HANYA JIKA ADA) ===
+            # === METRICS ===
             "PD03-totalHourlyJobs": safe_get(
                 f, ["serviceProfiles", 0, "aggregates", "totalHours"]
             ),
@@ -65,6 +76,10 @@ def transform(freelancers):
             # === SCORES ===
             "TEMP15-avgFeedbackscore": f.get("avgFeedbackScore"),
             "TEMP02-avgDeadlinesScore": f.get("avgDeadlinesScore"),
-        })
+        }
+        row["Status"] = "READY" if is_ready(row) else None
+
+        rows.append(row)
+
 
     return pd.DataFrame(rows)

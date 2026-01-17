@@ -1,9 +1,8 @@
 import pandas as pd
-import numpy as np
+from sheets import push_analysis_sheet
 
 
 TARGET = "Total Earnings"
-
 CANDIDATES = [
     "Hourly Rate",
     "Total Jobs",
@@ -13,10 +12,7 @@ CANDIDATES = [
 ]
 
 
-def top_3_drivers(df: pd.DataFrame):
-    """
-    Find top 3 variables most correlated with earnings
-    """
+def top_3_drivers(df):
     results = []
 
     for col in CANDIDATES:
@@ -35,26 +31,26 @@ def top_3_drivers(df: pd.DataFrame):
     return results[:3]
 
 
-def top_5_freelancers(df: pd.DataFrame):
-    """
-    Top 5 freelancers by total earnings
-    """
+def top_5_freelancers(df):
     cols = [
-        "Freelancer Name",
-        "Company",
-        "Service",
-        "Skill-1",
-        "Skill-2",
-        "Total Earnings",
+        "TEMP09-shortName",
+        "TEMP12-companyFullName",
+        "Job Title",
+        "TEMP06-skill1",
+        "TEMP07-skill2",
+        "PD02-combinedTotalRevenue",
     ]
 
-    existing = [c for c in cols if c in df.columns]
-
-    top = (
-        df[existing]
-        .dropna(subset=["Total Earnings"])
-        .sort_values("Total Earnings", ascending=False)
+    return (
+        df[cols]
+        .dropna(subset=["PD02-combinedTotalRevenue"])
+        .sort_values("PD02-combinedTotalRevenue", ascending=False)
         .head(5)
     )
 
-    return top
+
+
+def run_analysis(df):
+    drivers = top_3_drivers(df)
+    top5 = top_5_freelancers(df)
+    push_analysis_sheet(drivers, top5)
